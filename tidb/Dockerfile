@@ -1,0 +1,2 @@
+ARG TIDB_VERSION
+FROM pingcap/tidb:${TIDB_VERSION}

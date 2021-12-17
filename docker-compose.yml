@@ -1,0 +1,241 @@
+version: '3'
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+services:
+  ### nginx ################################################
+  nginx:
+    build:
+      context: ./nginx
+    volumes:
+      - /srv/project/:/srv/project
+      - ./nginx/log/:/var/log/nginx
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    ports:
+      - "80:80"
+    depends_on:
+      - php71
+      - php73
+    networks:
+      - frontend
+      - backend
+    links:
+      - php71
+      - php73
+      - nodejs8
+
+
+  ### php71 ################################################
+  php71:
+    build:
+      context: ./php71
+    volumes:
+      - /srv/project/:/srv/project
+      - ./php71/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./php71/conf.d/php.ini:/usr/local/etc/php/conf.d/php.ini
+    networks:
+      - backend
+
+  ### php73 ################################################
+  php73:
+    build:
+      context: ./php73
+    volumes:
+      - /srv/project/:/srv/project
+      - ./php73/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    networks:
+      - backend
+
+  ### php73-worker ################################################
+  php73-worker:
+    build:
+      context: ./php73-worker
+    volumes:
+      - /srv/project/:/srv/project
+      - ./php73-worker/supervisord.d/:/etc/supervisor/conf.d
+    networks:
+      - backend
+
+  ### php74 ################################################
+  php74:
+    build:
+      context: ./php74
+    volumes:
+      - /srv/project/:/srv/project
+      - ./php74/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    networks:
+      - backend
+
+  ### elasticsearch ################################################
+  elasticsearch:
+    build:
+      context: ./elasticsearch
+      args:
+        - ELK_VERSION=7.5.1
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    environment:
+      - cluster.name=workdock-cluster
+      - node.name=workdock-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.initial_master_nodes=workdock-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+    networks:
+      - backend
+
+  ### redis ################################################
+  redis:
+    build:
+      context: ./redis
+    ports:
+      - "6379:6379"
+    networks:
+      - frontend
+      - backend
+
+  ### MySQL ################################################
+  mysql:
+    build:
+      context: ./mysql
+      args:
+        - MYSQL_VERSION=latest
+    environment:
+      - MYSQL_DATABASE=shop
+      - MYSQL_USER=workdock
+      - MYSQL_PASSWORD=workdock
+      - MYSQL_ROOT_PASSWORD=workdock
+      - TZ=UTC
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - backend
+
+  ### MySQL5.7.24 ################################################
+  mysql57:
+    build:
+      context: ./mysql57
+      args:
+        - MYSQL_VERSION=5.7.24
+    environment:
+      - MYSQL_DATABASE=shop
+      - MYSQL_USER=workdock
+      - MYSQL_PASSWORD=workdock
+      - MYSQL_ROOT_PASSWORD=workdock
+      - TZ=UTC
+    volumes:
+      - ./mysql57/data:/var/lib/mysql
+      - ./mysql57/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - backend
+
+  ### MySQL5.7.24 ################################################
+  mysql5701:
+    build:
+      context: ./mysql5701
+      args:
+        - MYSQL_VERSION=5.7.24
+    environment:
+      - MYSQL_DATABASE=shop
+      - MYSQL_USER=workdock
+      - MYSQL_PASSWORD=workdock
+      - MYSQL_ROOT_PASSWORD=workdock
+      - TZ=UTC
+    volumes:
+      - ./mysql5701/data:/var/lib/mysql
+      - ./mysql5701/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "3307:3306"
+    networks:
+      - backend
+
+  ### tidb ################################################
+  tidb:
+    build:
+      context: ./tidb
+      args:
+        - TIDB_VERSION=latest
+    ports:
+      - "4000:4000"
+      - "10080:10080"
+    networks:
+      - backend
+
+  ### RabbitMQ #############################################
+  rabbitmq:
+    build: ./rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "15671:15671"
+    privileged: true
+    environment:
+      - RABBITMQ_DEFAULT_USER=workdock
+      - RABBITMQ_DEFAULT_PASS=workdock
+    hostname: workdock-rabbitmq
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    networks:
+      - backend
+
+  ### MongoDB ##############################################
+  mongo:
+    build: ./mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo/data/db:/data/db
+      - ./mongo/data/config:/data/configdb
+    networks:
+      - backend
+
+  ### ClickHouse ##############################################
+  clickhouse:
+    build: ./clickhouse
+    ports:
+      - "8123:8123"
+    networks:
+      - backend
+
+  ### consul ##############################################
+
+
+  ### nodejs8 ##############################################
+  nodejs8:
+    build: ./nodejs8
+    ports:
+      - "8081:8081"
+    volumes:
+      - /srv/project/:/srv/project
+    networks:
+      - frontend
+      - backend
+    stdin_open: true
+    tty: true
+
+  ### zookeeper ##############################################
+  zookeeper:
+    build: ./zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - frontend
+      - backend
