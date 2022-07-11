@@ -12,7 +12,7 @@ services:
     build:
       context: ./nginx
     volumes:
-      - /srv/project/:/srv/project
+      - ${PROJECT_PATH}:/srv/project
       - ./nginx/log/:/var/log/nginx
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
@@ -34,7 +34,7 @@ services:
     build:
       context: ./php71
     volumes:
-      - /srv/project/:/srv/project
+      - ${PROJECT_PATH}:/srv/project
       - ./php71/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
       - ./php71/conf.d/php.ini:/usr/local/etc/php/conf.d/php.ini
     networks:
@@ -45,7 +45,7 @@ services:
     build:
       context: ./php73
     volumes:
-      - /srv/project/:/srv/project
+      - ${PROJECT_PATH}:/srv/project
       - ./php73/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
     networks:
       - backend
@@ -55,7 +55,7 @@ services:
     build:
       context: ./php73-worker
     volumes:
-      - /srv/project/:/srv/project
+      - ${PROJECT_PATH}:/srv/project
       - ./php73-worker/supervisord.d/:/etc/supervisor/conf.d
     networks:
       - backend
@@ -65,7 +65,7 @@ services:
     build:
       context: ./php74
     volumes:
-      - /srv/project/:/srv/project
+      - ${PROJECT_PATH}:/srv/project
       - ./php74/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
     networks:
       - backend
@@ -223,7 +223,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - /srv/project/:/srv/project
+      - ${PROJECT_PATH}:/srv/project
     networks:
       - frontend
       - backend
@@ -237,7 +237,7 @@ services:
       - "8081:8081"
       - "8082:8082"
     volumes:
-      - /srv/project/:/srv/project
+      - ${PROJECT_PATH}:/srv/project
     networks:
       - frontend
       - backend
