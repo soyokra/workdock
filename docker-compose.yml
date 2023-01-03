@@ -28,7 +28,6 @@ services:
       - php71
       - php73
 
-
   ### php71 ################################################
   php71:
     build:
@@ -236,6 +235,9 @@ services:
     ports:
       - "8081:8081"
       - "8082:8082"
+      - "8802:8802"
+      - "8803:8803"
+      - "8804:8804"
     volumes:
       - ${PROJECT_PATH}:/srv/project
     networks:
@@ -249,6 +251,28 @@ services:
     build: ./zookeeper
     ports:
       - "2181:2181"
+    networks:
+      - frontend
+      - backend
+
+  ### nacos ###################################################
+  nacos:
+    build: ./nacos
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - MODE=standalone
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    networks:
+      - frontend
+      - backend
+
+  ### zipkin ###################################################
+  zipkin:
+    build: ./zipkin
+    ports:
+      - "9411:9411"
     networks:
       - frontend
       - backend
